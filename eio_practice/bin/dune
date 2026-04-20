@@ -1,0 +1,8 @@
+(executable
+ (public_name eio_practice)
+ (name main)
+ (libraries eio_main))
+
+(executable
+ (name concurrent)
+ (libraries eio_main))
