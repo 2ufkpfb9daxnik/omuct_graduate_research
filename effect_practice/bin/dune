@@ -1,0 +1,4 @@
+(executable
+ (public_name effect_practice)
+ (name main)
+ (libraries effect_practice))
