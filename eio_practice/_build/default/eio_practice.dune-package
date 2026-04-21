@@ -1,0 +1,4 @@
+(lang dune 3.22)
+(name eio_practice)
+(sections (lib .) (bin ../../bin))
+(files (lib (META dune-package opam)) (bin (eio_practice.exe)))

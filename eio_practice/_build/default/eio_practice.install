@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/eio_practice/META"
+  "_build/install/default/lib/eio_practice/dune-package"
+  "_build/install/default/lib/eio_practice/opam"
+]
+bin: [
+  "_build/install/default/bin/eio_practice.exe"
+]
