@@ -1,0 +1,332 @@
+[
+  structure_item (test.ml[1,0+0]..test.ml[1,0+11])
+    Tstr_open Fresh
+    module_expr (test.ml[1,0+5]..test.ml[1,0+11])
+      Tmod_ident "Stdlib!.Effect"
+  structure_item (test.ml[2,13+0]..test.ml[2,13+16])
+    Tstr_open Fresh
+    module_expr (test.ml[2,13+5]..test.ml[2,13+16])
+      Tmod_ident "Stdlib!.Effect.Deep"
+  structure_item (test.ml[5,92+0]..test.ml[5,92+40])
+    Tstr_typext
+    type_extension
+      ptyext_path = "Stdlib!.Effect.t"
+      ptyext_params =
+        [
+          core_type (test.ml[5,92+5]..test.ml[5,92+6])
+            Ttyp_any
+        ]
+      ptyext_constructors =
+        [
+          extension_constructor (test.ml[5,92+19]..test.ml[5,92+40])
+            pext_name = "Ask/291"
+            pext_kind =
+              Text_decl
+                []
+                Some
+                  core_type (test.ml[5,92+25]..test.ml[5,92+40])
+                    Ttyp_constr "Stdlib!.Effect.t"
+                    [
+                      core_type (test.ml[5,92+25]..test.ml[5,92+31])
+                        Ttyp_constr "string/17!"
+                        []
+                    ]
+        ]
+      ptyext_private = Public
+  structure_item (test.ml[8,183+0]..test.ml[11,346+76])
+    Tstr_value Nonrec
+    [
+      <def>
+        pattern (test.ml[8,183+4]..test.ml[8,183+15])
+          Tpat_var "perform_ask/292"
+        expression (test.ml[8,183+16]..test.ml[11,346+76]) ghost
+          Texp_function
+          [
+            Nolabel
+            Param_pat
+              pattern (test.ml[8,183+16]..test.ml[8,183+18])
+                Tpat_construct "()"
+                []
+                None
+          ]
+          Tfunction_body
+            expression (test.ml[9,205+2]..test.ml[11,346+76])
+              Texp_sequence
+              expression (test.ml[9,205+2]..test.ml[9,205+46])
+                Texp_apply
+                expression (test.ml[9,205+2]..test.ml[9,205+15])
+                  Texp_ident "Stdlib!.Printf.printf"
+                [
+                  <arg>
+                    Nolabel
+                    expression (test.ml[9,205+16]..test.ml[9,205+46])
+                      Texp_construct "CamlinternalFormatBasics.Format"
+                      [
+                        expression (test.ml[9,205+16]..test.ml[9,205+46]) ghost
+                          Texp_construct "CamlinternalFormatBasics.String_literal"
+                          [
+                            expression (test.ml[9,205+16]..test.ml[9,205+46]) ghost
+                              Texp_constant Const_string("1. perform Ask\227\130\146\229\174\159\232\161\140...\n",(test.ml[9,205+16]..test.ml[9,205+46]) ghost,None)
+                            expression (test.ml[9,205+16]..test.ml[9,205+46]) ghost
+                              Texp_construct "CamlinternalFormatBasics.End_of_format"
+                              []
+                          ]
+                        expression (test.ml[9,205+16]..test.ml[9,205+46]) ghost
+                          Texp_constant Const_string("1. perform Ask\227\130\146\229\174\159\232\161\140...\n",(test.ml[9,205+16]..test.ml[9,205+46]) ghost,None)
+                      ]
+                ]
+              expression (test.ml[10,254+2]..test.ml[11,346+76])
+                Texp_let Nonrec
+                [
+                  <def>
+                    pattern (test.ml[10,254+6]..test.ml[10,254+9])
+                      Tpat_var "msg/330"
+                    expression (test.ml[10,254+12]..test.ml[10,254+23])
+                      Texp_apply
+                      expression (test.ml[10,254+12]..test.ml[10,254+19])
+                        Texp_ident "Stdlib!.Effect.perform"
+                      [
+                        <arg>
+                          Nolabel
+                          expression (test.ml[10,254+20]..test.ml[10,254+23])
+                            Texp_construct "Ask"
+                            []
+                      ]
+                ]
+                expression (test.ml[11,346+2]..test.ml[11,346+76])
+                  Texp_apply
+                  expression (test.ml[11,346+2]..test.ml[11,346+15])
+                    Texp_ident "Stdlib!.Printf.printf"
+                  [
+                    <arg>
+                      Nolabel
+                      expression (test.ml[11,346+16]..test.ml[11,346+72])
+                        Texp_construct "CamlinternalFormatBasics.Format"
+                        [
+                          expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                            Texp_construct "CamlinternalFormatBasics.String_literal"
+                            [
+                              expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                Texp_constant Const_string("4. \227\131\143\227\131\179\227\131\137\227\131\169\227\129\139\227\130\137\229\128\164\227\130\146\229\143\151\227\129\145\229\143\150\227\130\138\227\129\190\227\129\151\227\129\159: ",(test.ml[11,346+16]..test.ml[11,346+72]) ghost,None)
+                              expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                Texp_construct "CamlinternalFormatBasics.String"
+                                [
+                                  expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                    Texp_construct "CamlinternalFormatBasics.No_padding"
+                                    []
+                                  expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                    Texp_construct "CamlinternalFormatBasics.Char_literal"
+                                    [
+                                      expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                        Texp_constant Const_char 0a
+                                      expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                                        Texp_construct "CamlinternalFormatBasics.End_of_format"
+                                        []
+                                    ]
+                                ]
+                            ]
+                          expression (test.ml[11,346+16]..test.ml[11,346+72]) ghost
+                            Texp_constant Const_string("4. \227\131\143\227\131\179\227\131\137\227\131\169\227\129\139\227\130\137\229\128\164\227\130\146\229\143\151\227\129\145\229\143\150\227\130\138\227\129\190\227\129\151\227\129\159: %s\n",(test.ml[11,346+16]..test.ml[11,346+72]) ghost,None)
+                        ]
+                    <arg>
+                      Nolabel
+                      expression (test.ml[11,346+73]..test.ml[11,346+76])
+                        Texp_ident "msg/330"
+                  ]
+    ]
+  structure_item (test.ml[14,475+0]..test.ml[25,963+3])
+    Tstr_value Nonrec
+    [
+      <def>
+        pattern (test.ml[14,475+4]..test.ml[14,475+6])
+          Tpat_construct "()"
+          []
+          None
+        expression (test.ml[15,485+2]..test.ml[25,963+3])
+          Texp_sequence
+          expression (test.ml[15,485+2]..test.ml[15,485+73])
+            Texp_apply
+            expression (test.ml[15,485+2]..test.ml[15,485+15])
+              Texp_ident "Stdlib!.Printf.printf"
+            [
+              <arg>
+                Nolabel
+                expression (test.ml[15,485+16]..test.ml[15,485+73])
+                  Texp_construct "CamlinternalFormatBasics.Format"
+                  [
+                    expression (test.ml[15,485+16]..test.ml[15,485+73]) ghost
+                      Texp_construct "CamlinternalFormatBasics.String_literal"
+                      [
+                        expression (test.ml[15,485+16]..test.ml[15,485+73]) ghost
+                          Texp_constant Const_string("--- \227\130\168\227\131\149\227\130\167\227\130\175\227\131\136\227\131\143\227\131\179\227\131\137\227\131\169\227\129\174\227\131\134\227\130\185\227\131\136\233\150\139\229\167\139 ---\n",(test.ml[15,485+16]..test.ml[15,485+73]) ghost,None)
+                        expression (test.ml[15,485+16]..test.ml[15,485+73]) ghost
+                          Texp_construct "CamlinternalFormatBasics.End_of_format"
+                          []
+                      ]
+                    expression (test.ml[15,485+16]..test.ml[15,485+73]) ghost
+                      Texp_constant Const_string("--- \227\130\168\227\131\149\227\130\167\227\130\175\227\131\136\227\131\143\227\131\179\227\131\137\227\131\169\227\129\174\227\131\134\227\130\185\227\131\136\233\150\139\229\167\139 ---\n",(test.ml[15,485+16]..test.ml[15,485+73]) ghost,None)
+                  ]
+            ]
+          expression (test.ml[17,563+2]..test.ml[25,963+3])
+            Texp_apply
+            expression (test.ml[17,563+2]..test.ml[17,563+10])
+              Texp_ident "Stdlib!.Effect.Deep.try_with"
+            [
+              <arg>
+                Nolabel
+                expression (test.ml[17,563+11]..test.ml[17,563+22])
+                  Texp_ident "perform_ask/292"
+              <arg>
+                Nolabel
+                expression (test.ml[17,563+23]..test.ml[17,563+25])
+                  Texp_construct "()"
+                  []
+              <arg>
+                Nolabel
+                expression (test.ml[18,590+2]..test.ml[25,963+3])
+                  Texp_record
+                    fields =
+                      [
+                        "effc"
+                          expression (test.ml[18,590+11]..test.ml[24,946+15])
+                            extra
+                              Texp_newtype "a"
+                            Texp_function
+                            [
+                              Nolabel
+                              Param_pat
+                                pattern (test.ml[18,590+25]..test.ml[18,590+28])
+                                  extra
+                                    Tpat_extra_constraint
+                                    core_type (test.ml[18,590+31]..test.ml[18,590+34])
+                                      Ttyp_constr "Stdlib!.Effect.t"
+                                      [
+                                        core_type (test.ml[18,590+31]..test.ml[18,590+32])
+                                          Ttyp_constr "a/341"
+                                          []
+                                      ]
+                                  Tpat_alias "eff/342"
+                                  pattern (test.ml[18,590+25]..test.ml[18,590+28])
+                                    Tpat_any
+                            ]
+                            Tfunction_body
+                              expression (test.ml[19,630+4]..test.ml[24,946+15])
+                                Texp_match
+                                expression (test.ml[19,630+10]..test.ml[19,630+13])
+                                  Texp_ident "eff/342"
+                                [
+                                  <case>
+                                    pattern (test.ml[20,650+6]..test.ml[20,650+9])
+                                      Tpat_value
+                                      pattern (test.ml[20,650+6]..test.ml[20,650+9])
+                                        Tpat_construct "Ask"
+                                        []
+                                        None
+                                    expression (test.ml[20,650+13]..test.ml[23,861+41])
+                                      Texp_construct "Some"
+                                      [
+                                        expression (test.ml[20,650+18]..test.ml[23,861+41])
+                                          Texp_function
+                                          [
+                                            Nolabel
+                                            Param_pat
+                                              pattern (test.ml[20,650+24]..test.ml[20,650+25])
+                                                extra
+                                                  Tpat_extra_constraint
+                                                  core_type (test.ml[20,650+28]..test.ml[20,650+47])
+                                                    Ttyp_constr "Stdlib!.Effect.Deep.continuation"
+                                                    [
+                                                      core_type (test.ml[20,650+29]..test.ml[20,650+30])
+                                                        Ttyp_constr "a/341"
+                                                        []
+                                                      core_type (test.ml[20,650+32]..test.ml[20,650+33])
+                                                        Ttyp_any
+                                                    ]
+                                                Tpat_alias "k/343"
+                                                pattern (test.ml[20,650+24]..test.ml[20,650+25])
+                                                  Tpat_any
+                                          ]
+                                          Tfunction_body
+                                            expression (test.ml[21,703+8]..test.ml[23,861+40])
+                                              Texp_sequence
+                                              expression (test.ml[21,703+8]..test.ml[21,703+71])
+                                                Texp_apply
+                                                expression (test.ml[21,703+8]..test.ml[21,703+21])
+                                                  Texp_ident "Stdlib!.Printf.printf"
+                                                [
+                                                  <arg>
+                                                    Nolabel
+                                                    expression (test.ml[21,703+22]..test.ml[21,703+71])
+                                                      Texp_construct "CamlinternalFormatBasics.Format"
+                                                      [
+                                                        expression (test.ml[21,703+22]..test.ml[21,703+71]) ghost
+                                                          Texp_construct "CamlinternalFormatBasics.String_literal"
+                                                          [
+                                                            expression (test.ml[21,703+22]..test.ml[21,703+71]) ghost
+                                                              Texp_constant Const_string("2. \227\131\143\227\131\179\227\131\137\227\131\169\227\129\140Ask\227\130\168\227\131\149\227\130\167\227\130\175\227\131\136\227\130\146\230\141\149\230\141\137\n",(test.ml[21,703+22]..test.ml[21,703+71]) ghost,None)
+                                                            expression (test.ml[21,703+22]..test.ml[21,703+71]) ghost
+                                                              Texp_construct "CamlinternalFormatBasics.End_of_format"
+                                                              []
+                                                          ]
+                                                        expression (test.ml[21,703+22]..test.ml[21,703+71]) ghost
+                                                          Texp_constant Const_string("2. \227\131\143\227\131\179\227\131\137\227\131\169\227\129\140Ask\227\130\168\227\131\149\227\130\167\227\130\175\227\131\136\227\130\146\230\141\149\230\141\137\n",(test.ml[21,703+22]..test.ml[21,703+71]) ghost,None)
+                                                      ]
+                                                ]
+                                              expression (test.ml[22,777+8]..test.ml[23,861+40])
+                                                Texp_sequence
+                                                expression (test.ml[22,777+8]..test.ml[22,777+81])
+                                                  Texp_apply
+                                                  expression (test.ml[22,777+8]..test.ml[22,777+21])
+                                                    Texp_ident "Stdlib!.Printf.printf"
+                                                  [
+                                                    <arg>
+                                                      Nolabel
+                                                      expression (test.ml[22,777+22]..test.ml[22,777+81])
+                                                        Texp_construct "CamlinternalFormatBasics.Format"
+                                                        [
+                                                          expression (test.ml[22,777+22]..test.ml[22,777+81]) ghost
+                                                            Texp_construct "CamlinternalFormatBasics.String_literal"
+                                                            [
+                                                              expression (test.ml[22,777+22]..test.ml[22,777+81]) ghost
+                                                                Texp_constant Const_string("3. \231\182\153\231\182\154k\227\130\146\227\130\136\227\129\153\229\190\174\229\135\186\227\129\151\227\129\166\229\135\166\231\144\134\227\130\146\229\134\141\233\150\139\227\129\149\227\129\155\227\130\139\n",(test.ml[22,777+22]..test.ml[22,777+81]) ghost,None)
+                                                              expression (test.ml[22,777+22]..test.ml[22,777+81]) ghost
+                                                                Texp_construct "CamlinternalFormatBasics.End_of_format"
+                                                                []
+                                                            ]
+                                                          expression (test.ml[22,777+22]..test.ml[22,777+81]) ghost
+                                                            Texp_constant Const_string("3. \231\182\153\231\182\154k\227\130\146\227\130\136\227\129\153\229\190\174\229\135\186\227\129\151\227\129\166\229\135\166\231\144\134\227\130\146\229\134\141\233\150\139\227\129\149\227\129\155\227\130\139\n",(test.ml[22,777+22]..test.ml[22,777+81]) ghost,None)
+                                                        ]
+                                                  ]
+                                                expression (test.ml[23,861+8]..test.ml[23,861+40])
+                                                  Texp_apply
+                                                  expression (test.ml[23,861+8]..test.ml[23,861+16])
+                                                    Texp_ident "Stdlib!.Effect.Deep.continue"
+                                                  [
+                                                    <arg>
+                                                      Nolabel
+                                                      expression (test.ml[23,861+17]..test.ml[23,861+18])
+                                                        Texp_ident "k/343"
+                                                    <arg>
+                                                      Nolabel
+                                                      expression (test.ml[23,861+19]..test.ml[23,861+40])
+                                                        Texp_constant Const_string("Hello from Handler!",(test.ml[23,861+20]..test.ml[23,861+39]),None)
+                                                  ]
+                                      ]
+                                  <case>
+                                    pattern (test.ml[24,946+6]..test.ml[24,946+7])
+                                      Tpat_value
+                                      pattern (test.ml[24,946+6]..test.ml[24,946+7])
+                                        Tpat_any
+                                    expression (test.ml[24,946+11]..test.ml[24,946+15])
+                                      Texp_construct "None"
+                                      []
+                                ]
+                                []
+                      ]
+                    representation =
+                      Record_regular
+                    extended_expression =
+                      None
+            ]
+    ]
+]
