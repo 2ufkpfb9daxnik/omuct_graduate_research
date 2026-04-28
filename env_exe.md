@@ -5,9 +5,15 @@
 ```bash
 opan update
 opam install dune eio_main
+dune init proj my_project
+cd my_project
 ```
 
 ## ビルドと実行
+
+```bash
+dune build
+```
 
 トップレベルから実行
 
