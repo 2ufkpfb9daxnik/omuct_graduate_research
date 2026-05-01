@@ -1,4 +1,4 @@
 (executable
  (public_name eflint)
  (name main)
- (libraries eflint))
+ (libraries eflint compiler-libs.common))

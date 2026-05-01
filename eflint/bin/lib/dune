@@ -1,2 +1,3 @@
 (library
- (name eflint))
+ (name eflint)
+ (libraries compiler-libs.common))
