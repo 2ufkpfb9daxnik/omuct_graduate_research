@@ -19,7 +19,7 @@ let () =
     match eff with
     | Ask -> Some (fun (k : (a, _) continuation) ->
         Printf.printf "2. ハンドラがAskエフェクトを捕捉\n";
-        Printf.printf "3. 継続kをよす微出して処理を再開させる\n";
+        Printf.printf "3. 継続kを呼び出して処理を再開させる\n";
         continue k "Hello from Handler!") (*ここでperformの場所へもどる*)
     | _ -> None
   }
