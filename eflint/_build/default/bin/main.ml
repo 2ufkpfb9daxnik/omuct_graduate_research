@@ -52,7 +52,7 @@ let my_linter = {
         | Some "Stdlib.Effect.perform" ->
             (* もしハンドラの外側(depth=0)で呼ばれていたら警告を出す *)
             if !handler_depth = 0 then begin
-              Printf.printf "[Warning] 行 %d: ハンドラの外側で perform が呼ばれています！\n" 
+              Printf.printf "[Warning] 行 %d: ハンドラの外側で perform が呼ばれています\n" 
                 e.exp_loc.loc_start.pos_lnum
             end;
             (* その後、通常通り子ノードの巡回を続ける *)
@@ -93,10 +93,10 @@ let my_linter = {
    ========================================== *)
 
 let () =
-  let cmt_filename = "input/test.cmt" in
+  let cmt_filename = "input/test_if.cmt" in
   match get_typed_ast_from_cmt cmt_filename with
   | Some ast ->
-      Printf.printf "=== Linter 解析開始 ===\n";
+      Printf.printf "lint開始\n";
       
       (* カウンタを初期化 *)
       handler_depth := 0;
@@ -106,8 +106,8 @@ let () =
       my_linter.structure my_linter ast;
       
       (* 解析結果（Errorレベル）の集計と出力 *)
-      (* ※現段階では簡易的に「1回以外ならエラー」としています *)
-      Printf.printf "=== 解析終了 ===\n";
+      (* ※現段階では1回以外ならエラー *)
+      Printf.printf "lint終了 \n";
       Printf.printf "continue の呼び出し回数: %d\n" !continue_call_count;
       if !continue_call_count = 0 then
         Printf.printf "[Error] 継続 k が再開されていません (未再開のリスク)\n"

@@ -36,3 +36,9 @@ dune exec bin/concurrent.exe
  (name concurrent)
  (libraries eio_main))
 ```
+
+テストファイル(.cmt)の作成
+
+```bash
+ocamlc -bin-annot -c ファイル名.ml
+```
