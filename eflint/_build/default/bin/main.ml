@@ -19,19 +19,26 @@ let get_path_name (e : expression) : string option =
 (* 継続の状態を表す *)
 type k_state =
   | Unused (* 継続未使用 *)
-  | Consumed (* 1回消費された*)
-  | Double (* 2回以上消費された (エラー) *)
+  | Consumed of int list (* 1回消費された (引数は消費された行番号のリスト)*)
+  | Double of int list (* 2回以上消費された (エラー) (引数は消費された行番号のリスト)*)
 
-(* 2つの分岐ルートの結果を結合 *)
-let merge_state s1 s2 =
+(* 2つの分岐ルートの結果を結合 (if) *)
+let merge_state e s1 s2 =
   match s1, s2 with
-  | Consumed, Consumed -> Consumed
+  (* 両方のルートで1回ずつ消費されていれば安全。代表として片方の行番号を残す *)
+  | Consumed l1, Consumed l2 -> Consumed (l1 @ l2)
   | Unused, Unused -> Unused
-  | Double, _ | _, Double -> Double
-  | Consumed, Unused | Unused, Consumed ->
+  | Double lines , _ | _, Double lines -> Double lines
+  | Consumed l, Unused | Unused, Consumed l ->
     (* 片方のルートでしか消費されていない場合は、消費漏れのリスクあり *)
-    Printf.printf "[Warning] 分岐によって継続の消費漏れが発生する可能性があります\n";
-    Consumed (* 後続の解析のために一旦Consumed扱いにするかは調整可能 *)
+    Printf.printf "[Warning] 行 %d: 分岐によって継続の消費漏れが発生する可能性があります\n" e.exp_loc.loc_start.pos_lnum;
+    Consumed l (* 後続の解析のために一旦Consumed扱いにするかは調整可能 *)
+
+(* N個の分岐ルートの結果を結合 (match) *)
+let merge_state_list e states =
+  match states with
+  | [] -> Unused
+  | hd :: tl -> List.fold_left (merge_state e) hd tl
 
 (*=== Linterの状態 ===*)
 let handler_depth = ref 0 (* ハンドラの深さ *)
@@ -59,17 +66,22 @@ let my_linter = {
         decr handler_depth;
       
       | Some "Stdlib.Effect.Deep.continue" ->
+
+        (* continue が呼ばれた行番号*)
+        let line = e.exp_loc.loc_start.pos_lnum in
+
         (* 状態を更新する *)
         begin match !current_k_state with
-        | Unused -> current_k_state := Consumed
-        | Consumed | Double -> current_k_state := Double
+        | Unused -> current_k_state := Consumed [line]
+        | Consumed lines -> current_k_state := Double (lines @ [line])
+        | Double lines -> current_k_state := Double (lines @ [line])
         end;
         default_iterator.expr sub e
       
       | _ -> default_iterator.expr sub e
       end
 
-    (* if式*)
+    (* if式 *)
     | Texp_ifthenelse (cond_expr, then_expr, else_expr_opt) ->
       (* 条件式を巡回 *)
       sub.expr sub cond_expr;
@@ -95,7 +107,88 @@ let my_linter = {
       in
 
       (* 分岐の結果を結合 *)
-      current_k_state := merge_state state_then state_else
+      current_k_state := merge_state e state_then state_else
+
+    (* match 式 *)
+    | Texp_match (match_expr, cases, exn_cases, _partial) ->
+      (* マッチ対象の式を巡回 *)
+      sub.expr sub match_expr;
+
+      (* 分岐にはいる前の状態を保存 *)
+      let state_before = !current_k_state in
+
+      (* 各ケースを巡回して最終状態のリストを作る *)
+      let analyze_cases case_list =
+        List.map (fun c ->
+          (* 状態を分岐前に戻す (各ルートは独立しているので)*)
+          current_k_state := state_before;
+          
+          (* case全体 (パターン、whenガード、->の右辺)を自動で巡回*)
+          sub.case sub c;
+          
+          (* このルートを通り終わった時点の状態を返す*)
+          !current_k_state
+        ) case_list
+      in
+
+      (* 通常のcaseと、例外ハンドラ(exception)のcaseをそれぞれ解析 *)
+      let states_from_cases = analyze_cases cases in
+      let states_from_exns = analyze_cases exn_cases in
+
+      (* すべての分岐の結果を結合 *)
+      let all_states = states_from_cases @ states_from_exns in
+
+      if all_states = [] then
+        current_k_state := state_before (* 分岐が0個なら状態はそのまま *)
+      else
+        current_k_state := merge_state_list e all_states
+
+    (* while *)
+    | Texp_while (cond_expr, body_expr) ->
+      (* 条件式を巡回 *)
+      sub.expr sub cond_expr;
+
+      (* ループに入る前の状態を保存 *)
+      let state_before = !current_k_state in
+
+      (* ループのう内部を巡回 *)
+      sub.expr sub body_expr;
+
+      (* 状態が変化したか(内部でcontinueが呼ばれたか)を確認 *)
+      if state_before <> !current_k_state then begin
+        Printf.printf "[Warning] 行 %d: whileループ内部で継続が消費されています(0回または複数回実行される可能性があります)\n" e.exp_loc.loc_start.pos_lnum;
+
+        (* 内部で呼ばれていた場合、エラー(Double)に遷移させる *)
+        let lines = match !current_k_state with
+          | Unused -> []
+          | Consumed l | Double l -> l
+      in
+      current_k_state := Double lines
+    end
+
+    (* for *)
+    | Texp_for (_, _, start_expr, end_expr, _, body_expr) ->
+      (* forの開始値と終了値を巡回 *)
+      sub.expr sub start_expr;
+      sub.expr sub end_expr;
+      
+      (* ループに入る前の状態を保存 *)
+      let state_before = !current_k_state in
+
+      (* ループの内部を巡回 *)
+      sub.expr sub body_expr;
+
+      (* 状態が変化したか(内部でcontinueが呼ばれたか)を確認 *)
+      if state_before <> !current_k_state then begin
+        Printf.printf "[Warning] 行 %d: forループ内部で継続が消費されています(0回または複数回実行される可能性があります)\n" e.exp_loc.loc_start.pos_lnum;
+
+        (* 内部で呼ばれていた場合、エラー(Double)に遷移させる *)
+        let lines = match !current_k_state with
+          | Unused -> []
+          | Consumed l | Double l -> l
+      in
+      current_k_state := Double lines
+    end
 
     (* その他の式 *)
     | _ -> default_iterator.expr sub e
@@ -104,20 +197,26 @@ let my_linter = {
 
 (* メインの処理 *)
 let () =
-  let cmt_filename = "input/test_match.cmt" in
+  let cmt_filename = "input/test_ok_while.cmt" in
   match get_typed_ast_from_cmt cmt_filename with
   | Some ast ->
-    Printf.printf "lint開始\n";
+    Printf.printf "ファイル名 %s でlint開始\n" cmt_filename;
     handler_depth := 0;
     current_k_state := Unused;
     
     my_linter.structure my_linter ast;
 
     Printf.printf "lint終了\n";
+  
+    let list_to_str lines = String.concat ", " (List.map string_of_int lines) in
     begin match !current_k_state with
-    | Unused -> Printf.printf "[Error] 継続 k が再開されていません\n"
-    | Consumed -> Printf.printf "[OK] 継続 k は正しく1回だけ再開されています\n"
-    | Double -> Printf.printf "[Error] 継続 k が複数回再開されています\n"
+    | Unused -> 
+        Printf.printf "[Error] 継続 k が一度も再開されていません\n"
+    | Consumed lines -> 
+        Printf.printf "[OK] 継続 k は正しく1回だけ再開されています (消費ポイント: 行 %s)\n" (list_to_str lines)
+    | Double lines -> 
+        Printf.printf "[Error] 継続 k が同一パス上で複数回再開されるリスクがあります\n" ;
+        Printf.printf "       (関連する continue の位置: 行 %s)\n" (list_to_str lines)
     end
   
   | None ->
