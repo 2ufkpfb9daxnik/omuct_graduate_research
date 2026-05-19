@@ -104,7 +104,7 @@ let my_linter = {
 
 (* メインの処理 *)
 let () =
-  let cmt_filename = "input/test_if.cmt" in
+  let cmt_filename = "input/test_match.cmt" in
   match get_typed_ast_from_cmt cmt_filename with
   | Some ast ->
     Printf.printf "lint開始\n";
