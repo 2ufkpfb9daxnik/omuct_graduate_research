@@ -231,7 +231,7 @@ let my_linter = {
 
 (* メインの処理 *)
 let () =
-  let cmt_filename = "input/test_err_or.cmt" in
+  let cmt_filename = "input/test_err_and.cmt" in
   match get_typed_ast_from_cmt cmt_filename with
   | Some ast ->
     Printf.printf "ファイル名 %s でlint開始\n" cmt_filename;
