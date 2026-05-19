@@ -21,18 +21,25 @@ type k_state =
   | Unused (* 継続未使用 *)
   | Consumed of int list (* 1回消費された (引数は消費された行番号のリスト)*)
   | Double of int list (* 2回以上消費された (エラー) (引数は消費された行番号のリスト)*)
+  | Missing of int list (* 分岐による未再開のリスク  (引数は未再開の行番号のリスト)*)
 
 (* 2つの分岐ルートの結果を結合 (if) *)
 let merge_state e s1 s2 =
   match s1, s2 with
-  (* 両方のルートで1回ずつ消費されていれば安全。代表として片方の行番号を残す *)
   | Consumed l1, Consumed l2 -> Consumed (l1 @ l2)
   | Unused, Unused -> Unused
-  | Double lines , _ | _, Double lines -> Double lines
+  
+  (* Double は最強のエラーなのでそのまま伝播 *)
+  | Double lines, _ | _, Double lines -> Double lines
+  
+  (* Missing状態の伝播 *)
+  | Missing l1, Missing l2 -> Missing (l1 @ l2)
+  | Missing l, Consumed _ | Consumed _, Missing l -> Missing l
+  | Missing l, Unused | Unused, Missing l -> Missing l
+  
+  (* 片方だけ消費された場合、厳格にMissing(エラー)に遷移させる *)
   | Consumed l, Unused | Unused, Consumed l ->
-    (* 片方のルートでしか消費されていない場合は、消費漏れのリスクあり *)
-    Printf.printf "[Warning] 行 %d: 分岐によって継続の消費漏れが発生する可能性があります\n" e.exp_loc.loc_start.pos_lnum;
-    Consumed l (* 後続の解析のために一旦Consumed扱いにするかは調整可能 *)
+      Missing l
 
 (* N個の分岐ルートの結果を結合 (match) *)
 let merge_state_list e states =
@@ -75,9 +82,10 @@ let my_linter = {
         | Unused -> current_k_state := Consumed [line]
         | Consumed lines -> current_k_state := Double (lines @ [line])
         | Double lines -> current_k_state := Double (lines @ [line])
+        | Missing lines -> current_k_state := Double (lines @ [line])
         end;
         default_iterator.expr sub e
-      
+
       | _ -> default_iterator.expr sub e
       end
 
@@ -85,8 +93,34 @@ let my_linter = {
     | Texp_ifthenelse (cond_expr, then_expr, else_expr_opt) ->
       (* 条件式を巡回 *)
       sub.expr sub cond_expr;
+      
+      (*もし条件式を評価した時点で、すでに2回以上呼び出し(Double)になっていたら終了*)
+      if match !current_k_state with Double _ -> true | _ -> false then ()
 
-      (* 分岐に入る前の状態を保存 *)
+      (* もし条件式の中で、すでに1回消費されていた場合 *)
+      else if match !current_k_state with Consumed _ -> true | _ -> false then begin
+        (* 条件式の中で消費されたなら、then/elseのどちらに進んでも消費済みなので、中身を巡回するが、分岐による消費漏れ(Missing)が入ることはないので、最終的に条件式が変わった時点でのConsumed状態を維持させる *)
+        let state_after_cond = !current_k_state in
+
+        (* then側を確認 *)
+        sub.expr sub then_expr;
+        let state_after_then = !current_k_state in
+        
+        (* 状態を戻してelse側を確認 *)
+        current_k_state := state_after_cond;
+        (match else_expr_opt with Some else_expr -> sub.expr sub else_expr | None -> ());
+        let state_after_else = !current_k_state in
+
+        (* もしどちらかのルートでさらにcontinueが呼ばれてDoubleになっていたら、Doubleを優先する *)
+        if match state_after_then with Double _ -> true | _ -> false ||
+           match state_after_else with Double _ -> true | _ -> false then
+          current_k_state := Double (match state_after_then, state_after_else with Double l, _ | _, Double l -> l | _ -> [])
+        else
+          current_k_state := state_after_cond
+      end
+
+      (* 条件式の中ではまだ継続が消費されていない場合 *)
+      else begin
       let state_before = !current_k_state in
 
       (* then側を巡回し、結果を保存 *)
@@ -108,6 +142,7 @@ let my_linter = {
 
       (* 分岐の結果を結合 *)
       current_k_state := merge_state e state_then state_else
+    end
 
     (* match 式 *)
     | Texp_match (match_expr, cases, exn_cases, _partial) ->
@@ -119,15 +154,14 @@ let my_linter = {
 
       (* 各ケースを巡回して最終状態のリストを作る *)
       let analyze_cases case_list =
-        List.map (fun c ->
-          (* 状態を分岐前に戻す (各ルートは独立しているので)*)
+        List.filter_map (fun c ->
           current_k_state := state_before;
-          
-          (* case全体 (パターン、whenガード、->の右辺)を自動で巡回*)
           sub.case sub c;
-          
-          (* このルートを通り終わった時点の状態を返す*)
-          !current_k_state
+
+          (* エフェクトハンドラの _ -> None のように、明示的にNoneを返すルートは処理の放棄であるため、消費漏れの計算から除外する *)
+          match c.c_rhs.exp_desc with
+          | Texp_construct (_, {cstr_name="None"; _}, _) -> None
+          | _ -> Some !current_k_state
         ) case_list
       in
 
@@ -151,7 +185,7 @@ let my_linter = {
       (* ループに入る前の状態を保存 *)
       let state_before = !current_k_state in
 
-      (* ループのう内部を巡回 *)
+      (* ループの内部を巡回 *)
       sub.expr sub body_expr;
 
       (* 状態が変化したか(内部でcontinueが呼ばれたか)を確認 *)
@@ -161,7 +195,7 @@ let my_linter = {
         (* 内部で呼ばれていた場合、エラー(Double)に遷移させる *)
         let lines = match !current_k_state with
           | Unused -> []
-          | Consumed l | Double l -> l
+          | Consumed l | Double l | Missing l -> l
       in
       current_k_state := Double lines
     end
@@ -185,7 +219,7 @@ let my_linter = {
         (* 内部で呼ばれていた場合、エラー(Double)に遷移させる *)
         let lines = match !current_k_state with
           | Unused -> []
-          | Consumed l | Double l -> l
+          | Consumed l | Double l | Missing l -> l
       in
       current_k_state := Double lines
     end
@@ -197,7 +231,7 @@ let my_linter = {
 
 (* メインの処理 *)
 let () =
-  let cmt_filename = "input/test_ok_while.cmt" in
+  let cmt_filename = "input/test_err_and.cmt" in
   match get_typed_ast_from_cmt cmt_filename with
   | Some ast ->
     Printf.printf "ファイル名 %s でlint開始\n" cmt_filename;
@@ -208,15 +242,18 @@ let () =
 
     Printf.printf "lint終了\n";
   
-    let list_to_str lines = String.concat ", " (List.map string_of_int lines) in
     begin match !current_k_state with
     | Unused -> 
         Printf.printf "[Error] 継続 k が一度も再開されていません\n"
     | Consumed lines -> 
-        Printf.printf "[OK] 継続 k は正しく1回だけ再開されています (消費ポイント: 行 %s)\n" (list_to_str lines)
+        let lines_str = String.concat ", " (List.map string_of_int lines) in
+        Printf.printf "[OK] 継続 k は正しく1回だけ再開されています (消費されている行: %s)\n" lines_str
     | Double lines -> 
-        Printf.printf "[Error] 継続 k が同一パス上で複数回再開されるリスクがあります\n" ;
-        Printf.printf "       (関連する continue の位置: 行 %s)\n" (list_to_str lines)
+        let lines_str = String.concat ", " (List.map string_of_int lines) in
+        Printf.printf "[Error] 継続 k が同一パス上で複数回再開されるリスクがあります (発生行: %s)\n" lines_str
+    | Missing lines -> 
+        let lines_str = String.concat ", " (List.map string_of_int lines) in
+        Printf.printf "[Error] 分岐（if/match/論理演算）によって継続が消費されないルートが存在します (行: %s)\n" lines_str
     end
   
   | None ->
